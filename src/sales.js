@@ -21,4 +21,8 @@ function sumByMonth(rows) {
   return totals;
 }
 
-module.exports = { parseCsv, sumByMonth };
+function formatTotals(totals) {
+  return Object.entries(totals).map(([month, total]) => `${month}: ${total}`);
+}
+
+module.exports = { parseCsv, sumByMonth, formatTotals };
