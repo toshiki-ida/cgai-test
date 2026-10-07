@@ -1,0 +1,136 @@
+# =====================================================================
+# project-rules.yaml  ―  このリポジトリの開発ルールの「正本」
+# 人も Claude Code もこのファイルを読んで従う。
+# 変更するときは PR を出し、テックリードの承認を得ること。
+# =====================================================================
+version: 2
+
+project:
+  name: "cgai-test"          # ← システム名
+  owner_team: "@toshiki-ida"  # ← GitHub のチーム名
+  language: "ja"
+
+# ---------------------------------------------------------------------
+# 必ず守ること
+# ---------------------------------------------------------------------
+always:
+  - "コードは GitHub で管理する"
+  - "本番・現場の端末で直接コードを書き換えない"
+  - "秘密情報をコミットしない"
+  - "main に直接 push しない（必ず PR を通す）"
+  - "Notion にシステムページと仕様ページを残す"
+
+# ---------------------------------------------------------------------
+# ブランチ（main ＋ 作業ブランチ）
+# ---------------------------------------------------------------------
+branches:
+  main:
+    purpose: "現場で使う正式なコード。リリースごとにタグ（v1.2.0 など）を付ける"
+    direct_push: false
+    merge_from: "作業ブランチからの PR のみ"
+    required_checks: ["ci", "branch-rules"]
+    required_approvals: 0           # 自己レビューでマージ可（review.self_review を満たすこと）
+
+  # 作業ブランチの命名規則（CI とフックがこの正規表現で検査する）
+  working_branch_pattern: '^(feature|fix|docs|chore|refactor|test)/[0-9]+-[a-z0-9-]+$'
+  types:
+    feature: "機能追加"
+    fix: "不具合修正"
+    docs: "ドキュメント"
+    chore: "設定・初期設定など"
+    refactor: "動きを変えない書き直し"
+    test: "テストの追加"
+  examples:
+    - "feature/12-csv-export"
+    - "fix/15-null-check"
+
+# ---------------------------------------------------------------------
+# コミット / PR / リリース
+# ---------------------------------------------------------------------
+commits:
+  convention: "Conventional Commits"   # feat: / fix: / docs: / chore: / refactor: / test:
+  language: "ja"
+  example: "feat: CSV 出力ボタンを追加 (#12)"
+
+pull_requests:
+  target: "main"
+  template: ".github/pull_request_template.md"
+  require_issue_link: true             # PR 本文に "#番号" を必須にする
+  merge_method: "squash"
+  delete_branch_after_merge: true
+
+release:
+  tag_format: "vMAJOR.MINOR.PATCH"     # 不具合修正は PATCH、機能追加は MINOR を上げる
+  cadence: "まとまり次第。遅くとも週1回"
+  rollback: "問題があれば、まず前のタグの版に戻してから作業ブランチで直す"
+
+# ---------------------------------------------------------------------
+# レビュー
+# ---------------------------------------------------------------------
+review:
+  checkpoints: ["目的", "正しさ", "安全", "読みやすさ", "テスト"]
+  self_review:
+    allowed: true
+    conditions:
+      - "差分をすべて自分で読み、理解できない箇所がない"
+      - "Claude の自動レビューの指摘に対応した、または対応しない理由を PR に書いた"
+      - "手元で実際に動かして確認した"
+  requires_another_person:          # 自己レビューだけではマージしない
+    - "個人情報・顧客情報を扱う変更"
+    - "ログイン・権限などセキュリティに関わる変更"
+    - "外部システム・サービスとつなぐ変更"
+
+# ---------------------------------------------------------------------
+# 現場でのブラッシュアップ
+# ---------------------------------------------------------------------
+field_work:
+  allowed: "開発用 PC を現場に持ち込み、作業ブランチで改修し、試験版で確認する"
+  forbidden: "本番・現場の端末を直接書き換えること"
+  trial_build: "作業ブランチから作った試験版は、確認後に現場から消し、main の正式版に入れ替える"
+  test_data: "本番データを直接つながず、コピーかテスト用データを使う"
+
+# ---------------------------------------------------------------------
+# Claude Code の利用ルール
+# ---------------------------------------------------------------------
+claude_code:
+  forbidden_branches: ["main"]              # この上でのコミットはフックで拒否
+  must_run_before_pr: ["lint", "test"]
+  merge_by_claude: false                    # マージは人が行う
+  bypass_permissions_mode: "disabled"       # --dangerously-skip-permissions 禁止
+  secrets_access: "forbidden"               # .env / secrets/ は読ませない
+  github_app_install: "Only select repositories（対象リポジトリだけ）"
+  approved_mcp_servers:                     # 追加するときはこのファイルを PR で更新
+    - name: "notion-cgai"
+      type: "local (@notionhq/notion-mcp-server)"
+      scope: "会社の Notion のうち CGAI ページとその子ページのみ（内部インテグレーション）"
+      config: ".mcp.json"
+  forbidden_mcp_servers:
+    - name: "Notion ホスト型 MCP (mcp.notion.com)"
+      reason: "ログインした本人の権限で会社の Notion 全体に届くため"
+
+# ---------------------------------------------------------------------
+# ドキュメント（Notion）
+# ---------------------------------------------------------------------
+documentation:
+  format: "docs/notion-format.md"      # Notion の書式の正本
+  notion_root: "CGAI"
+  notion_system_page: ""               # ← CGAI「システム一覧」の該当ページ URL
+  notion_spec_page: ""                 # ← そのシステムの「仕様」ページ URL（必ず作る）
+  notion_integration: "CGAI Claude Code"
+  notion_token_env: "NOTION_TOKEN"     # 各自の環境変数。リポジトリには書かない
+  local_draft: "docs/system-overview.md"
+  draft_command: "/system-doc"
+  update_triggers:
+    - "仕様が変わる変更をしたとき：仕様ページ（PR と同時）"
+    - "リリース時：システムページの変更履歴と現在のバージョン（当日）"
+    - "障害復旧後：障害記録とナレッジ（3営業日以内）"
+    - "四半期ごと：最終確認日"
+  human_review_required: true          # Claude の下書きは人が確認してから反映
+
+# ---------------------------------------------------------------------
+# セキュリティ
+# ---------------------------------------------------------------------
+security:
+  never_commit: [".env", ".env.*", "*.pem", "*.key", "secrets/**"]
+  production_access_from_dev_machine: false
+  personal_data_in_prompts: false

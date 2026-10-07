@@ -1,0 +1,37 @@
+# ブランチルールの検査
+# - 作業ブランチ名が命名規則に合っているか
+# - PR 本文に Issue 番号 (#123) があるか
+# ジョブ名 "branch-rules" をブランチ保護の必須チェックに登録する
+name: branch-rules
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, edited, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  branch-rules:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check branch name and Issue link
+        env:
+          HEAD: ${{ github.head_ref }}
+          BODY: ${{ github.event.pull_request.body }}
+        run: |
+          pattern='^(feature|fix|docs|chore|refactor|test)/[0-9]+-[a-z0-9-]+$'
+
+          if ! echo "$HEAD" | grep -Eq "$pattern"; then
+            echo "::error::ブランチ名 '$HEAD' が命名規則に違反しています（例: feature/12-csv-export）"
+            exit 1
+          fi
+
+          if ! echo "$BODY" | grep -Eq '#[0-9]+'; then
+            echo "::error::PR 本文に Issue 番号（例: Closes #12）を記載してください"
+            exit 1
+          fi
+
+          echo "OK: $HEAD → main"

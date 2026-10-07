@@ -1,0 +1,9 @@
+# ルール・安全設定・CI の変更には、テックリードの承認が必要
+# （ここに書いていないファイルの変更は、自己レビューでマージできる）
+/project-rules.yaml   @toshiki-ida
+/CLAUDE.md            @toshiki-ida
+/.claude/             @toshiki-ida
+/.github/             @toshiki-ida
+/.mcp.json            @toshiki-ida
+/scripts/             @toshiki-ida
+/docs/notion-format.md @toshiki-ida

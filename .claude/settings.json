@@ -1,0 +1,148 @@
+{
+  "permissions": {
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./secrets/**)",
+      "Read(./**/*.pem)",
+      "Read(./**/*.key)",
+      "Bash(cat .env:*)",
+      "Bash(rm -rf:*)",
+      "Bash(git push --force:*)",
+      "Bash(git push -f:*)",
+      "Bash(git reset --hard:*)",
+      "Bash(git push origin main:*)",
+      "Bash(gh pr merge:*)",
+      "Bash(curl:*)",
+      "Bash(wget:*)",
+      "Read(~/.ssh/**)",
+      "Read(~/.aws/**)",
+      "Read(~/.config/gh/**)",
+      "Read(~/.zshrc)",
+      "Read(~/.bashrc)",
+      "Bash(rm -r:*)",
+      "Bash(rm -fr:*)",
+      "Bash(sudo:*)",
+      "Bash(chmod 777:*)",
+      "Read(**/.env)",
+      "Read(**/.env.*)",
+      "Edit(./scripts/**)",
+      "Write(./scripts/**)",
+      "Read(~/.config/cgai/**)",
+      "Bash(security:*)",
+      "Edit(./.claude/**)",
+      "Write(./.claude/**)",
+      "Edit(./.mcp.json)",
+      "Write(./.mcp.json)",
+      "Bash(env)",
+      "Bash(env:*)",
+      "Bash(printenv:*)",
+      "Bash(set)",
+      "Bash(export -p)",
+      "Bash(echo $NOTION_TOKEN:*)",
+      "Bash(echo ${NOTION_TOKEN}:*)",
+      "Bash(powershell:*)",
+      "Bash(pwsh:*)",
+      "Bash(cmd:*)",
+      "Bash(cmd.exe:*)",
+      "Bash(reg:*)",
+      "Bash(setx:*)"
+    ],
+    "ask": [
+      "Bash(git push:*)",
+      "Bash(gh pr create:*)",
+      "Bash(npm install:*)",
+      "Bash(npm publish:*)",
+      "Bash(bash scripts/setup-repo.sh:*)"
+    ],
+    "allow": [
+      "Bash(git status)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git switch:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(npm run lint:*)",
+      "Bash(npm test:*)",
+      "Bash(gh issue create:*)",
+      "Bash(gh issue view:*)",
+      "Bash(gh issue list:*)"
+    ],
+    "disableBypassPermissionsMode": "disable",
+    "blockReadsOutsideWorkingDirectories": true
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard-branch.sh\""
+          }
+        ]
+      }
+    ]
+  },
+  "sandbox": {
+    "enabled": true,
+    "allowUnsandboxedCommands": false,
+    "excludedCommands": [
+      "git push *",
+      "gh *",
+      "bash scripts/setup-repo.sh *"
+    ],
+    "network": {
+      "allowedDomains": [
+        "github.com",
+        "api.github.com",
+        "registry.npmjs.org"
+      ]
+    },
+    "credentials": {
+      "files": [
+        {
+          "path": "~/.ssh",
+          "mode": "deny"
+        },
+        {
+          "path": "~/.aws",
+          "mode": "deny"
+        },
+        {
+          "path": "~/.config/gh",
+          "mode": "deny"
+        },
+        {
+          "path": "~/.config/cgai",
+          "mode": "deny"
+        }
+      ],
+      "envVars": [
+        {
+          "name": "NOTION_TOKEN",
+          "mode": "deny"
+        },
+        {
+          "name": "GITHUB_TOKEN",
+          "mode": "deny"
+        },
+        {
+          "name": "GH_TOKEN",
+          "mode": "deny"
+        },
+        {
+          "name": "ANTHROPIC_API_KEY",
+          "mode": "deny"
+        }
+      ]
+    },
+    "filesystem": {
+      "denyRead": [
+        "./**/.env",
+        "./**/.env.*",
+        "./secrets"
+      ]
+    }
+  }
+}

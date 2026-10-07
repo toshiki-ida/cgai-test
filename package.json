@@ -1,0 +1,11 @@
+{
+  "name": "cgai-test",
+  "version": "0.1.0",
+  "private": true,
+  "description": "CGAI 連携テスト用のサンプル（売上 CSV の月別集計）",
+  "scripts": {
+    "lint": "node --check src/sales.js && node --check src/cli.js && node --check test/sales.test.js",
+    "test": "node --test",
+    "start": "node src/cli.js sample/sales.csv"
+  }
+}

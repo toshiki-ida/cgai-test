@@ -1,0 +1,33 @@
+# main 宛ての PR を Claude が自動レビューする（コメントのみ。承認・マージはしない）
+name: claude-review
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, ready_for_review]
+
+jobs:
+  review:
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      pull-requests: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          prompt: |
+            この PR をレビューし、日本語でコメントしてください。観点:
+            1. project-rules.yaml と CLAUDE.md のルールに違反していないか
+            2. バグ・例外処理漏れ・セキュリティ上の問題（秘密情報、インジェクション等）
+            3. テストが追加・更新されているか
+            4. 可読性と命名
+            問題がなければ「問題なし」と簡潔に書いてください。
+          claude_args: >-
+            --allowedTools "mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*)"

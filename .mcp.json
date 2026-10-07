@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "notion-cgai": {
+      "command": "node",
+      "args": [".claude/mcp/notion-mcp.js"],
+      "env": {
+        "NOTION_TOKEN": "${NOTION_TOKEN}"
+      }
+    }
+  }
+}
